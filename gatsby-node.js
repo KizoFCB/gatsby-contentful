@@ -9,16 +9,22 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
 
   // Get all markdown blog posts sorted by date
   const result = await graphql(
-    `
-      {
-        allMarkdownRemark(
-          sort: { fields: [frontmatter___date], order: ASC }
-          limit: 1000
-        ) {
-          nodes {
-            id
-            fields {
+      `
+      query myQuery{
+        allContentfulBlogPost {
+          edges {
+            post:node {
+              id
               slug
+              tags
+              title
+              publishDate(formatString: "MMMM DD, YYYY")
+              description {
+                description
+              }
+              author {
+                name
+              }
             }
           }
         }
@@ -34,22 +40,22 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
     return
   }
 
-  const posts = result.data.allMarkdownRemark.nodes
+  const posts = result.data.allContentfulBlogPost.edges
 
   // Create blog posts pages
   // But only if there's at least one markdown file found at "content/blog" (defined in gatsby-config.js)
   // `context` is available in the template as a prop and as a variable in GraphQL
 
   if (posts.length > 0) {
-    posts.forEach((post, index) => {
-      const previousPostId = index === 0 ? null : posts[index - 1].id
-      const nextPostId = index === posts.length - 1 ? null : posts[index + 1].id
+    posts.forEach((node, index) => {
+      const previousPostId = index === 0 ? null : posts[index - 1].post.id
+      const nextPostId = index === posts.length - 1 ? null : posts[index + 1].post.id
 
       createPage({
-        path: post.fields.slug,
+        path: node.post.slug,
         component: blogPost,
         context: {
-          id: post.id,
+          id: node.post.id,
           previousPostId,
           nextPostId,
         },
@@ -58,19 +64,20 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
   }
 }
 
-exports.onCreateNode = ({ node, actions, getNode }) => {
-  const { createNodeField } = actions
+// For Markdown files we add a slug field to them
+// exports.onCreateNode = ({ node, actions, getNode }) => {
+//   const { createNodeField } = actions
 
-  if (node.internal.type === `MarkdownRemark`) {
-    const value = createFilePath({ node, getNode })
+//   if (node.internal.type === `MarkdownRemark`) {
+//     const value = createFilePath({ node, getNode })
 
-    createNodeField({
-      name: `slug`,
-      node,
-      value,
-    })
-  }
-}
+//     createNodeField({
+//       name: `slug`,
+//       node,
+//       value,
+//     })
+//   }
+// }
 
 exports.createSchemaCustomization = ({ actions }) => {
   const { createTypes } = actions

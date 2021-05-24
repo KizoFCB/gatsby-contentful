@@ -7,9 +7,9 @@ import Seo from "../components/seo"
 
 const BlogIndex = ({ data, location }) => {
   const siteTitle = data.site.siteMetadata?.title || `Title`
-  const posts = data.allMarkdownRemark.nodes
+  const posts = data.allContentfulBlogPost?.edges
 
-  if (posts.length === 0) {
+  if (posts?.length === 0) {
     return (
       <Layout location={location} title={siteTitle}>
         <Seo title="All posts" />
@@ -18,21 +18,21 @@ const BlogIndex = ({ data, location }) => {
           No blog posts found. Add markdown posts to "content/blog" (or the
           directory you specified for the "gatsby-source-filesystem" plugin in
           gatsby-config.js).
+          Or add new content in your Contentful space.
         </p>
       </Layout>
     )
   }
-
   return (
     <Layout location={location} title={siteTitle}>
       <Seo title="All posts" />
       <Bio />
       <ol style={{ listStyle: `none` }}>
-        {posts.map(post => {
-          const title = post.frontmatter.title || post.fields.slug
+        {posts?.map(node => {
+          const title = node.post.title || node.post.slug
 
           return (
-            <li key={post.fields.slug}>
+            <li key={node.post.id}>
               <article
                 className="post-list-item"
                 itemScope
@@ -40,19 +40,14 @@ const BlogIndex = ({ data, location }) => {
               >
                 <header>
                   <h2>
-                    <Link to={post.fields.slug} itemProp="url">
+                    <Link to={node.post.slug} itemProp="url">
                       <span itemProp="headline">{title}</span>
                     </Link>
                   </h2>
-                  <small>{post.frontmatter.date}</small>
+                  <small>{node.post.publishDate}</small>
                 </header>
                 <section>
-                  <p
-                    dangerouslySetInnerHTML={{
-                      __html: post.frontmatter.description || post.excerpt,
-                    }}
-                    itemProp="description"
-                  />
+                  <p itemProp="description">{node.post.description.description}</p>
                 </section>
               </article>
             </li>
@@ -65,23 +60,28 @@ const BlogIndex = ({ data, location }) => {
 
 export default BlogIndex
 
+// New page query from Contentful
 export const pageQuery = graphql`
-  query {
+  query BlogQuery {
     site {
-      siteMetadata {
-        title
-      }
-    }
-    allMarkdownRemark(sort: { fields: [frontmatter___date], order: DESC }) {
-      nodes {
-        excerpt
-        fields {
+       siteMetadata {
+         title
+       }
+     }
+    allContentfulBlogPost {
+      edges {
+        post:node {
+          id
           slug
-        }
-        frontmatter {
-          date(formatString: "MMMM DD, YYYY")
+          tags
           title
-          description
+          publishDate(formatString: "MMMM DD, YYYY")
+          description {
+            description
+          }
+          author {
+            name
+          }
         }
       }
     }
