@@ -14,7 +14,7 @@ const BlogPostTemplate = ({ data, location }) => {
     <Layout location={location} title={siteTitle}>
       <Seo
         title={post.title}
-        description={post.description}
+        description={post.description.description}
       />
       <article
         className="blog-post"
