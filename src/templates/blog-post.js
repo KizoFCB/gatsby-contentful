@@ -74,17 +74,7 @@ export const pageQuery = graphql`
       }
     }
     contentfulBlogPost(id: {eq: $id}) {
-      id
-      author {
-        name
-      }
-      description {
-        description
-      }
-      publishDate(formatString: "MMMM DD , YYYY")
-      slug
-      tags
-      title
+      ...BlogPostFragment
       body{
         childMarkdownRemark {
           html

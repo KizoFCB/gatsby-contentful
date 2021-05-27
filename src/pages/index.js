@@ -71,17 +71,7 @@ export const pageQuery = graphql`
     allContentfulBlogPost {
       edges {
         post:node {
-          id
-          slug
-          tags
-          title
-          publishDate(formatString: "MMMM DD, YYYY")
-          description {
-            description
-          }
-          author {
-            name
-          }
+          ...BlogPostFragment
         }
       }
     }
